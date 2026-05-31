@@ -1,0 +1,48 @@
+{
+  "language": {
+    "label": "Jezik",
+    "english": "Engleski",
+    "serbian": "Srpski"
+  },
+  "dashboard": {
+    "title": "Detekcija objekata",
+    "subtitle": "Gateway konzola",
+    "emptyImage": "Izaberi sliku",
+    "inputPanel": "Ulaz",
+    "previewPanel": "Preview",
+    "servicesPanel": "Servisi",
+    "responsesPanel": "Odgovori",
+    "ready": "Spremno",
+    "waiting": "Ceka se slika",
+    "selectedFile": "Izabrani fajl"
+  },
+  "filePicker": {
+    "label": "Slika",
+    "button": "Izaberi sliku",
+    "empty": "Nema izabranog fajla",
+    "hint": "JPG, PNG, WEBP"
+  },
+  "buttons": {
+    "detectPython": "Detekcija (Python)",
+    "detectDotnet": "Detekcija (.NET)",
+    "sendingPython": "Saljem u Python...",
+    "sendingDotnet": "Saljem u .NET...",
+    "loading": "Ucitavanje...",
+    "nestHealth": "Nest health",
+    "pythonHealth": "Python health",
+    "dotnetHealth": ".NET health"
+  },
+  "responses": {
+    "nest": "Nest odgovor",
+    "python": "Python odgovor",
+    "dotnet": ".NET odgovor",
+    "empty": "Nema odgovora"
+  },
+  "errors": {
+    "unknown": "Nepoznata greska"
+  },
+  "imagePreview": {
+    "empty": "Nema slike jos.",
+    "alt": "preview"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "language": {
+    "label": "Language",
+    "english": "English",
+    "serbian": "Serbian"
+  },
+  "dashboard": {
+    "title": "Object Detection",
+    "subtitle": "Gateway console",
+    "emptyImage": "Choose an image",
+    "inputPanel": "Input",
+    "previewPanel": "Preview",
+    "servicesPanel": "Services",
+    "responsesPanel": "Responses",
+    "ready": "Ready",
+    "waiting": "Waiting for image",
+    "selectedFile": "Selected file"
+  },
+  "filePicker": {
+    "label": "Image",
+    "button": "Browse image",
+    "empty": "No file selected",
+    "hint": "JPG, PNG, WEBP"
+  },
+  "buttons": {
+    "detectPython": "Detect (Python)",
+    "detectDotnet": "Detect (.NET)",
+    "sendingPython": "Sending to Python...",
+    "sendingDotnet": "Sending to .NET...",
+    "loading": "Loading...",
+    "nestHealth": "Nest health",
+    "pythonHealth": "Python health",
+    "dotnetHealth": ".NET health"
+  },
+  "responses": {
+    "nest": "Nest Response",
+    "python": "Python Response",
+    "dotnet": ".NET Response",
+    "empty": "No response yet"
+  },
+  "errors": {
+    "unknown": "Unknown error"
+  },
+  "imagePreview": {
+    "empty": "No image yet.",
+    "alt": "preview"
+  }
+}
