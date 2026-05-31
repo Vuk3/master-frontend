@@ -159,13 +159,43 @@ export default function DetectPage() {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <div className="app-header__title">
-          <span className="eyebrow">{t("dashboard.subtitle")}</span>
-          <h1>{t("dashboard.title")}</h1>
+        <div className="app-header__brand">
+          <span className="app-mark" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+              <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+              <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+              <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+              <rect x="8" y="8" width="8" height="8" rx="1.5" />
+            </svg>
+          </span>
+          <div className="app-header__title">
+            <span className="eyebrow">{t("dashboard.subtitle")}</span>
+            <h1>{t("dashboard.title")}</h1>
+          </div>
         </div>
 
         <LanguageSwitcher />
       </header>
+
+      <div className="node-strip" aria-label="Service nodes">
+        <span className="node-chip" data-kind="gateway">
+          gateway
+        </span>
+        <span className="node-chip" data-kind="python">
+          python-api
+        </span>
+        <span className="node-chip" data-kind="dotnet">
+          dotnet-api
+        </span>
+      </div>
 
       {error && (
         <pre className="error-banner">{error}</pre>
@@ -203,6 +233,7 @@ export default function DetectPage() {
           <div className="action-row">
             <button
               className="action-button action-button--primary"
+              data-active={activeEngine === "python"}
               onClick={async () => {
                 setActiveEngine("python");
                 await sendToPython();
@@ -216,6 +247,7 @@ export default function DetectPage() {
 
             <button
               className="action-button"
+              data-active={activeEngine === "dotnet"}
               onClick={async () => {
                 setActiveEngine("dotnet");
                 await sendToDotnet();
@@ -239,20 +271,35 @@ export default function DetectPage() {
             </div>
 
             <div className="service-actions">
-              <button className="service-button" onClick={getNestHealth} disabled={isBusy}>
-              {loading === "nestHealth"
-                ? t("buttons.loading")
-                : t("buttons.nestHealth")}
+              <button
+                className="service-button"
+                data-kind="gateway"
+                onClick={getNestHealth}
+                disabled={isBusy}
+              >
+                {loading === "nestHealth"
+                  ? t("buttons.loading")
+                  : t("buttons.nestHealth")}
               </button>
-              <button className="service-button" onClick={getPythonHealth} disabled={isBusy}>
-              {loading === "pythonHealth"
-                ? t("buttons.loading")
-                : t("buttons.pythonHealth")}
+              <button
+                className="service-button"
+                data-kind="python"
+                onClick={getPythonHealth}
+                disabled={isBusy}
+              >
+                {loading === "pythonHealth"
+                  ? t("buttons.loading")
+                  : t("buttons.pythonHealth")}
               </button>
-              <button className="service-button" onClick={getDotnetHealth} disabled={isBusy}>
-              {loading === "dotnetHealth"
-                ? t("buttons.loading")
-                : t("buttons.dotnetHealth")}
+              <button
+                className="service-button"
+                data-kind="dotnet"
+                onClick={getDotnetHealth}
+                disabled={isBusy}
+              >
+                {loading === "dotnetHealth"
+                  ? t("buttons.loading")
+                  : t("buttons.dotnetHealth")}
               </button>
             </div>
           </div>

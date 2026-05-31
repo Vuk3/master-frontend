@@ -46,6 +46,8 @@ export default function ImageWithDetections({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const accent = "#059669";
+
     for (const det of detections) {
       const { x1, y1, x2, y2 } = det.box;
 
@@ -54,19 +56,25 @@ export default function ImageWithDetections({
       const bw = (x2 - x1) * scaleX;
       const bh = (y2 - y1) * scaleY;
 
-      ctx.strokeStyle = "red";
+      ctx.fillStyle = "rgba(5, 150, 105, 0.12)";
+      ctx.fillRect(x, y, bw, bh);
+
+      ctx.strokeStyle = accent;
       ctx.lineWidth = 2;
       ctx.strokeRect(x, y, bw, bh);
 
       const text = `${det.label} ${(det.score * 100).toFixed(1)}%`;
-      ctx.font = "12px Arial";
+      ctx.font =
+        "600 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
       const tw = ctx.measureText(text).width;
+      const labelH = 18;
+      const labelY = Math.max(0, y - labelH);
 
-      ctx.fillStyle = "red";
-      ctx.fillRect(x, Math.max(0, y - 16), tw + 6, 16);
+      ctx.fillStyle = accent;
+      ctx.fillRect(x, labelY, tw + 12, labelH);
 
-      ctx.fillStyle = "white";
-      ctx.fillText(text, x + 3, Math.max(12, y - 4));
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(text, x + 6, labelY + 13);
     }
   }, [detections, imageWidth, imageHeight, isLoaded]);
 

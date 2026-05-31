@@ -10,9 +10,12 @@ export default function JsonBlock({ title, data }: Props) {
   const { t } = useI18n();
 
   return (
-    <div className="response-block">
+    <div className="response-block" data-active={Boolean(data)}>
       <div className="response-block__header">
-        <span>{title}</span>
+        <span className="response-block__title">
+          <span className="response-block__dots" aria-hidden="true" />
+          {title}
+        </span>
         <span className="response-block__status" data-active={Boolean(data)}>
           {data ? "JSON" : "idle"}
         </span>
