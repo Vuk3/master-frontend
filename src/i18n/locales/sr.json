@@ -6,7 +6,7 @@
   },
   "dashboard": {
     "title": "Detekcija objekata",
-    "subtitle": "Gateway comparison",
+    "subtitle": "Gateway poređenje",
     "emptyImage": "Izaberi sliku",
     "inputPanel": "Ulaz",
     "previewPanel": "Slika za analizu",
@@ -17,7 +17,7 @@
     "resultsPanel": "Uporedni rezultati",
     "healthPanel": "Health provere",
     "ready": "Spremno",
-    "waiting": "Ceka se slika",
+    "waiting": "Čeka se slika",
     "selectedFile": "Izabrani fajl"
   },
   "filePicker": {
@@ -31,14 +31,14 @@
     "detectDotnet": "Detekcija (.NET)",
     "compareBoth": "Uporedi oba servisa",
     "comparing": "Poredim servise...",
-    "sendingPython": "Saljem u Python...",
-    "sendingDotnet": "Saljem u .NET...",
-    "loading": "Ucitavanje...",
+    "sendingPython": "Šaljem u Python...",
+    "sendingDotnet": "Šaljem u .NET...",
+    "loading": "Učitavanje...",
     "nestHealth": "Nest health",
     "pythonHealth": "Python health",
     "dotnetHealth": ".NET health",
     "checkAll": "Proveri sve",
-    "clearPredictions": "Ocisti predikcije"
+    "clearPredictions": "Očisti predikcije"
   },
   "responses": {
     "nest": "Nest",
@@ -52,10 +52,10 @@
     "dotnet": ".NET API"
   },
   "status": {
-    "idle": "Ceka",
+    "idle": "Čeka",
     "loading": "Radi",
     "success": "Gotovo",
-    "error": "Greska"
+    "error": "Greška"
   },
   "health": {
     "idle": "Nije provereno",
@@ -70,19 +70,52 @@
     "model": "Model",
     "inputSize": "Ulaz",
     "totalDetections": "Ukupno labela",
-    "fastest": "Brzi servis",
+    "fastest": "Brži servis",
     "delta": "Razlika"
+  },
+  "filters": {
+    "minConfidence": "Min pouzdanost"
+  },
+  "fileInspector": {
+    "title": "Izabrani fajl",
+    "dimensions": "Dimenzije",
+    "type": "Tip",
+    "size": "Veličina"
+  },
+  "comparison": {
+    "detectionCount": "Objekti Python / .NET",
+    "detectionDelta": "Razlika u broju",
+    "avgConfidence": "Prosek pouzdanosti",
+    "confidenceDelta": "Razlika pouzdanosti",
+    "bestDetection": "Najbolja detekcija"
+  },
+  "display": {
+    "title": "Prikaz",
+    "boxes": "Okvir",
+    "fill": "Ispuna",
+    "selectedOnly": "Samo izabrano"
+  },
+  "runDetails": {
+    "idle": "Čeka se pokretanje",
+    "loading": "Servis trenutno obrađuje sliku",
+    "done": "Završeno za",
+    "failed": "Servis je vratio grešku"
+  },
+  "imageTools": {
+    "zoomIn": "Uvećaj",
+    "zoomOut": "Umanji",
+    "reset": "Vrati prikaz"
   },
   "detections": {
     "title": "Labele",
     "empty": "Nema detekcija",
-    "waiting": "Rezultat ce se prikazati posle analize"
+    "waiting": "Rezultat će se prikazati posle analize"
   },
   "errors": {
-    "unknown": "Nepoznata greska"
+    "unknown": "Nepoznata greška"
   },
   "imagePreview": {
-    "empty": "Nema slike jos.",
-    "alt": "preview"
+    "empty": "Nema slike još.",
+    "alt": "pregled"
   }
 }

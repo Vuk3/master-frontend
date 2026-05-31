@@ -3,7 +3,7 @@ import { ApiError } from "../api/client";
 import { dotnetApi } from "../api/dotnet";
 import { gatewayApi } from "../api/gateway";
 import { pythonApi } from "../api/python";
-import type { DetectResponse } from "../api/types";
+import type { DetectResponse, Detection } from "../api/types";
 import DetectionResultPanel from "../components/DetectionResultPanel";
 import FilePicker from "../components/FilePicker";
 import LanguageSwitcher from "../components/LanguageSwitcher";
@@ -25,6 +25,11 @@ type HealthState = {
   status: HealthStatus;
   latencyMs: number | null;
   message: string | null;
+};
+
+type ImageInfo = {
+  width: number;
+  height: number;
 };
 
 function createRunState() {
@@ -65,14 +70,55 @@ function formatDuration(durationMs: number | null) {
   return `${(durationMs / 1000).toFixed(2)} s`;
 }
 
+function formatPercent(value: number | null) {
+  if (value === null) return "-";
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatSignedNumber(value: number) {
+  if (value === 0) return "0";
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
+function formatSignedPercent(value: number | null) {
+  if (value === null) return "-";
+  const rounded = Math.round(value * 100);
+  if (rounded === 0) return "0%";
+  return rounded > 0 ? `+${rounded}%` : `${rounded}%`;
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024 * 1024) {
+    return `${Math.max(1, Math.round(size / 1024))} KB`;
+  }
+
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function getAverageConfidence(detections: Detection[]) {
+  if (!detections.length) return null;
+  const total = detections.reduce((sum, detection) => sum + detection.score, 0);
+  return total / detections.length;
+}
+
+function getBestDetection(detections: Detection[]) {
+  if (!detections.length) return null;
+
+  return detections.reduce((best, detection) =>
+    detection.score > best.score ? detection : best,
+  );
+}
+
 export default function DetectPage() {
   const { t } = useI18n();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageInfo, setImageInfo] = useState<ImageInfo | null>(null);
   const [runs, setRuns] =
     useState<Record<ServiceKey, RunState>>(createRunStates);
   const [healthChecks, setHealthChecks] =
     useState<Record<HealthKey, HealthState>>(createHealthStates);
+  const [confidenceThreshold, setConfidenceThreshold] = useState(0.25);
   const previewUrlRef = useRef<string | null>(null);
 
   const isDetecting = Object.values(runs).some(
@@ -87,9 +133,22 @@ export default function DetectPage() {
   );
   const canClearPredictions = Boolean(file) && hasRunResults && !isDetecting;
 
+  const filteredDetections = useMemo(
+    () => ({
+      python:
+        runs.python.data?.detections.filter(
+          (detection) => detection.score >= confidenceThreshold,
+        ) ?? [],
+      dotnet:
+        runs.dotnet.data?.detections.filter(
+          (detection) => detection.score >= confidenceThreshold,
+        ) ?? [],
+    }),
+    [confidenceThreshold, runs.dotnet.data, runs.python.data],
+  );
+
   const totalDetections =
-    (runs.python.data?.detections.length ?? 0) +
-    (runs.dotnet.data?.detections.length ?? 0);
+    filteredDetections.python.length + filteredDetections.dotnet.length;
 
   const comparison = useMemo(() => {
     const completed = (["python", "dotnet"] as ServiceKey[])
@@ -113,8 +172,28 @@ export default function DetectPage() {
     };
   }, [runs]);
 
+  const comparisonSummary = useMemo(() => {
+    const pythonAverage = getAverageConfidence(filteredDetections.python);
+    const dotnetAverage = getAverageConfidence(filteredDetections.dotnet);
+    const confidenceDelta =
+      pythonAverage !== null && dotnetAverage !== null
+        ? pythonAverage - dotnetAverage
+        : null;
+
+    return {
+      detectionDelta:
+        filteredDetections.python.length - filteredDetections.dotnet.length,
+      pythonAverage,
+      dotnetAverage,
+      confidenceDelta,
+      pythonBest: getBestDetection(filteredDetections.python),
+      dotnetBest: getBestDetection(filteredDetections.dotnet),
+    };
+  }, [filteredDetections.dotnet, filteredDetections.python]);
+
   useEffect(() => {
     setRuns(createRunStates());
+    setImageInfo(null);
 
     if (!file) {
       if (previewUrlRef.current) {
@@ -132,6 +211,20 @@ export default function DetectPage() {
     const url = URL.createObjectURL(file);
     previewUrlRef.current = url;
     setPreviewUrl(url);
+
+    const previewImage = new Image();
+    previewImage.onload = () => {
+      if (previewUrlRef.current !== url) return;
+      setImageInfo({
+        width: previewImage.naturalWidth,
+        height: previewImage.naturalHeight,
+      });
+    };
+    previewImage.onerror = () => {
+      if (previewUrlRef.current !== url) return;
+      setImageInfo(null);
+    };
+    previewImage.src = url;
   }, [file]);
 
   function getErrorMessage(e: unknown) {
@@ -256,6 +349,27 @@ export default function DetectPage() {
   const fastestLabel = comparison
     ? t(`services.${comparison.fastestService}`)
     : "-";
+  const detectionCountLabel = `${filteredDetections.python.length} / ${filteredDetections.dotnet.length}`;
+  const detectionDeltaLabel = formatSignedNumber(
+    comparisonSummary.detectionDelta,
+  );
+  const averageConfidenceLabel = `${formatPercent(comparisonSummary.pythonAverage)} / ${formatPercent(
+    comparisonSummary.dotnetAverage,
+  )}`;
+  const confidenceDeltaLabel = formatSignedPercent(
+    comparisonSummary.confidenceDelta,
+  );
+  const pythonBestLabel = comparisonSummary.pythonBest
+    ? `${comparisonSummary.pythonBest.label} ${formatPercent(comparisonSummary.pythonBest.score)}`
+    : "-";
+  const dotnetBestLabel = comparisonSummary.dotnetBest
+    ? `${comparisonSummary.dotnetBest.label} ${formatPercent(comparisonSummary.dotnetBest.score)}`
+    : "-";
+  const selectedImageDimensions = imageInfo
+    ? `${imageInfo.width} x ${imageInfo.height}`
+    : "-";
+  const selectedImageType = file?.type || "-";
+  const selectedImageSize = file ? formatFileSize(file.size) : "-";
 
   return (
     <main className="app-shell">
@@ -322,6 +436,32 @@ export default function DetectPage() {
             </span>
           </div>
           <FilePicker file={file} onPick={setFile} />
+          <div className="file-inspector">
+            <div className="file-inspector__frame" data-empty={!previewUrl}>
+              {previewUrl ? (
+                <img src={previewUrl} alt={t("imagePreview.alt")} />
+              ) : (
+                <span>IMG</span>
+              )}
+            </div>
+            <div className="file-inspector__meta">
+              <span>{t("fileInspector.title")}</span>
+              <div className="file-inspector__stats">
+                <div>
+                  <span>{t("fileInspector.dimensions")}</span>
+                  <strong>{selectedImageDimensions}</strong>
+                </div>
+                <div>
+                  <span>{t("fileInspector.type")}</span>
+                  <strong>{selectedImageType}</strong>
+                </div>
+                <div>
+                  <span>{t("fileInspector.size")}</span>
+                  <strong>{selectedImageSize}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="control-panel__actions">
@@ -369,18 +509,56 @@ export default function DetectPage() {
             </button>
           </div>
 
+          <label className="threshold-control">
+            <span>
+              {t("filters.minConfidence")}
+              <strong>{formatPercent(confidenceThreshold)}</strong>
+            </span>
+            <input
+              max="1"
+              min="0"
+              onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
+              step="0.01"
+              type="range"
+              value={confidenceThreshold}
+            />
+          </label>
+
           <div className="comparison-strip" aria-label={t("metrics.title")}>
-            <div className="comparison-stat">
+            <div className="comparison-stat comparison-stat--total">
               <span>{t("metrics.totalDetections")}</span>
               <strong>{totalDetections}</strong>
             </div>
-            <div className="comparison-stat">
+            <div className="comparison-stat comparison-stat--fastest">
               <span>{t("metrics.fastest")}</span>
               <strong>{fastestLabel}</strong>
             </div>
-            <div className="comparison-stat">
+            <div className="comparison-stat comparison-stat--delta">
               <span>{t("metrics.delta")}</span>
               <strong>{formatDuration(comparison?.deltaMs ?? null)}</strong>
+            </div>
+            <div className="comparison-stat comparison-stat--best">
+              <span>{t("comparison.bestDetection")}</span>
+              <strong>{`${pythonBestLabel} | ${dotnetBestLabel}`}</strong>
+            </div>
+          </div>
+
+          <div className="comparison-summary">
+            <div className="summary-card summary-card--count-delta">
+              <span>{t("comparison.detectionDelta")}</span>
+              <strong>{detectionDeltaLabel}</strong>
+            </div>
+            <div className="summary-card summary-card--objects">
+              <span>{t("comparison.detectionCount")}</span>
+              <strong>{detectionCountLabel}</strong>
+            </div>
+            <div className="summary-card summary-card--confidence-delta">
+              <span>{t("comparison.confidenceDelta")}</span>
+              <strong>{confidenceDeltaLabel}</strong>
+            </div>
+            <div className="summary-card summary-card--avg-confidence">
+              <span>{t("comparison.avgConfidence")}</span>
+              <strong>{averageConfidenceLabel}</strong>
             </div>
           </div>
         </div>
@@ -388,21 +566,25 @@ export default function DetectPage() {
 
       <section className="results-grid" aria-label={t("dashboard.resultsPanel")}>
         <DetectionResultPanel
+          detections={filteredDetections.python}
           durationMs={runs.python.durationMs}
           error={runs.python.error}
           imageUrl={previewUrl}
           result={runs.python.data}
           service="python"
           status={runs.python.status}
+          threshold={confidenceThreshold}
           title={t("responses.python")}
         />
         <DetectionResultPanel
+          detections={filteredDetections.dotnet}
           durationMs={runs.dotnet.durationMs}
           error={runs.dotnet.error}
           imageUrl={previewUrl}
           result={runs.dotnet.data}
           service="dotnet"
           status={runs.dotnet.status}
+          threshold={confidenceThreshold}
           title={t("responses.dotnet")}
         />
       </section>

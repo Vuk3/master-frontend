@@ -73,6 +73,39 @@
     "fastest": "Fastest service",
     "delta": "Delta"
   },
+  "filters": {
+    "minConfidence": "Min confidence"
+  },
+  "fileInspector": {
+    "title": "Selected file",
+    "dimensions": "Dimensions",
+    "type": "Type",
+    "size": "Size"
+  },
+  "comparison": {
+    "detectionCount": "Objects Python / .NET",
+    "detectionDelta": "Count delta",
+    "avgConfidence": "Avg confidence",
+    "confidenceDelta": "Confidence delta",
+    "bestDetection": "Best detection"
+  },
+  "display": {
+    "title": "Display",
+    "boxes": "Box",
+    "fill": "Fill",
+    "selectedOnly": "Selected only"
+  },
+  "runDetails": {
+    "idle": "Waiting to run",
+    "loading": "Service is processing the image",
+    "done": "Completed in",
+    "failed": "Service returned an error"
+  },
+  "imageTools": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "reset": "Reset view"
+  },
   "detections": {
     "title": "Labels",
     "empty": "No detections",

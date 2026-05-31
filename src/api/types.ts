@@ -15,7 +15,7 @@ export type Detection = {
 
 export type DetectResponse = {
   model: "mlnet" | "yolov8";
-  imageWidth: number;
-  imageHeight: number;
+  imageWidth?: number;
+  imageHeight?: number;
   detections: Detection[];
 };
