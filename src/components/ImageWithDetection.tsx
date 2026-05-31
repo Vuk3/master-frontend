@@ -12,6 +12,7 @@ type Props = {
   imageWidth: number;
   imageHeight: number;
   detections?: Detection[];
+  accent?: string;
 };
 
 export default function ImageWithDetections({
@@ -19,6 +20,7 @@ export default function ImageWithDetections({
   imageWidth,
   imageHeight,
   detections = [],
+  accent = "#2563eb",
 }: Props) {
   const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,9 +48,7 @@ export default function ImageWithDetections({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const accent = "#059669";
-
-    for (const det of detections) {
+    detections.forEach((det, index) => {
       const { x1, y1, x2, y2 } = det.box;
 
       const x = x1 * scaleX;
@@ -56,27 +56,39 @@ export default function ImageWithDetections({
       const bw = (x2 - x1) * scaleX;
       const bh = (y2 - y1) * scaleY;
 
-      ctx.fillStyle = "rgba(5, 150, 105, 0.12)";
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = accent;
       ctx.fillRect(x, y, bw, bh);
+      ctx.globalAlpha = 1;
 
       ctx.strokeStyle = accent;
       ctx.lineWidth = 2;
       ctx.strokeRect(x, y, bw, bh);
 
-      const text = `${det.label} ${(det.score * 100).toFixed(1)}%`;
-      ctx.font =
-        "600 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-      const tw = ctx.measureText(text).width;
-      const labelH = 18;
-      const labelY = Math.max(0, y - labelH);
-
+      const markerX = Math.max(15, Math.min(w - 15, x + 15));
+      const markerY = Math.max(15, Math.min(h - 15, y + 15));
+      ctx.beginPath();
+      ctx.arc(markerX, markerY, 13, 0, Math.PI * 2);
       ctx.fillStyle = accent;
-      ctx.fillRect(x, labelY, tw + 12, labelH);
+      ctx.fill();
 
+      ctx.font =
+        "700 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(text, x + 6, labelY + 13);
-    }
-  }, [detections, imageWidth, imageHeight, isLoaded]);
+      ctx.fillText(String(index + 1), markerX, markerY + 0.5);
+    });
+  }, [accent, detections, imageWidth, imageHeight, isLoaded]);
+
+  useEffect(() => {
+    setIsLoaded(false);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+  }, [imageUrl]);
 
   // Kad se promene detekcije, pokušaj ponovo da nacrtaš (ako je slika već učitana)
   useEffect(() => {

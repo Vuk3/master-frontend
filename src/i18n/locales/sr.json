@@ -6,12 +6,16 @@
   },
   "dashboard": {
     "title": "Detekcija objekata",
-    "subtitle": "Gateway konzola",
+    "subtitle": "Gateway comparison",
     "emptyImage": "Izaberi sliku",
     "inputPanel": "Ulaz",
-    "previewPanel": "Preview",
+    "previewPanel": "Slika za analizu",
     "servicesPanel": "Servisi",
-    "responsesPanel": "Odgovori",
+    "responsesPanel": "Rezultati",
+    "comparisonPanel": "Benchmark",
+    "actionsPanel": "Pokretanje analize",
+    "resultsPanel": "Uporedni rezultati",
+    "healthPanel": "Health provere",
     "ready": "Spremno",
     "waiting": "Ceka se slika",
     "selectedFile": "Izabrani fajl"
@@ -25,18 +29,54 @@
   "buttons": {
     "detectPython": "Detekcija (Python)",
     "detectDotnet": "Detekcija (.NET)",
+    "compareBoth": "Uporedi oba servisa",
+    "comparing": "Poredim servise...",
     "sendingPython": "Saljem u Python...",
     "sendingDotnet": "Saljem u .NET...",
     "loading": "Ucitavanje...",
     "nestHealth": "Nest health",
     "pythonHealth": "Python health",
-    "dotnetHealth": ".NET health"
+    "dotnetHealth": ".NET health",
+    "checkAll": "Proveri sve",
+    "clearPredictions": "Ocisti predikcije"
   },
   "responses": {
-    "nest": "Nest odgovor",
-    "python": "Python odgovor",
-    "dotnet": ".NET odgovor",
+    "nest": "Nest",
+    "python": "Python rezultat",
+    "dotnet": ".NET rezultat",
     "empty": "Nema odgovora"
+  },
+  "services": {
+    "gateway": "Gateway",
+    "python": "Python API",
+    "dotnet": ".NET API"
+  },
+  "status": {
+    "idle": "Ceka",
+    "loading": "Radi",
+    "success": "Gotovo",
+    "error": "Greska"
+  },
+  "health": {
+    "idle": "Nije provereno",
+    "loading": "Provera",
+    "online": "Online",
+    "offline": "Offline"
+  },
+  "metrics": {
+    "title": "Metrike",
+    "duration": "Trajanje",
+    "detections": "Objekti",
+    "model": "Model",
+    "inputSize": "Ulaz",
+    "totalDetections": "Ukupno labela",
+    "fastest": "Brzi servis",
+    "delta": "Razlika"
+  },
+  "detections": {
+    "title": "Labele",
+    "empty": "Nema detekcija",
+    "waiting": "Rezultat ce se prikazati posle analize"
   },
   "errors": {
     "unknown": "Nepoznata greska"

@@ -6,12 +6,16 @@
   },
   "dashboard": {
     "title": "Object Detection",
-    "subtitle": "Gateway console",
+    "subtitle": "Gateway comparison",
     "emptyImage": "Choose an image",
     "inputPanel": "Input",
-    "previewPanel": "Preview",
+    "previewPanel": "Image for analysis",
     "servicesPanel": "Services",
-    "responsesPanel": "Responses",
+    "responsesPanel": "Results",
+    "comparisonPanel": "Benchmark",
+    "actionsPanel": "Run analysis",
+    "resultsPanel": "Comparison results",
+    "healthPanel": "Health checks",
     "ready": "Ready",
     "waiting": "Waiting for image",
     "selectedFile": "Selected file"
@@ -25,18 +29,54 @@
   "buttons": {
     "detectPython": "Detect (Python)",
     "detectDotnet": "Detect (.NET)",
+    "compareBoth": "Compare both services",
+    "comparing": "Comparing services...",
     "sendingPython": "Sending to Python...",
     "sendingDotnet": "Sending to .NET...",
     "loading": "Loading...",
     "nestHealth": "Nest health",
     "pythonHealth": "Python health",
-    "dotnetHealth": ".NET health"
+    "dotnetHealth": ".NET health",
+    "checkAll": "Check all",
+    "clearPredictions": "Clear predictions"
   },
   "responses": {
-    "nest": "Nest Response",
-    "python": "Python Response",
-    "dotnet": ".NET Response",
+    "nest": "Nest",
+    "python": "Python result",
+    "dotnet": ".NET result",
     "empty": "No response yet"
+  },
+  "services": {
+    "gateway": "Gateway",
+    "python": "Python API",
+    "dotnet": ".NET API"
+  },
+  "status": {
+    "idle": "Idle",
+    "loading": "Running",
+    "success": "Done",
+    "error": "Error"
+  },
+  "health": {
+    "idle": "Unchecked",
+    "loading": "Checking",
+    "online": "Online",
+    "offline": "Offline"
+  },
+  "metrics": {
+    "title": "Metrics",
+    "duration": "Duration",
+    "detections": "Objects",
+    "model": "Model",
+    "inputSize": "Input",
+    "totalDetections": "Total labels",
+    "fastest": "Fastest service",
+    "delta": "Delta"
+  },
+  "detections": {
+    "title": "Labels",
+    "empty": "No detections",
+    "waiting": "Result appears after analysis"
   },
   "errors": {
     "unknown": "Unknown error"
