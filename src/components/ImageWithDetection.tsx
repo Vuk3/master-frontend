@@ -6,6 +6,7 @@ import {
   type PointerEvent,
 } from "react";
 import { useI18n } from "../i18n/use-i18n";
+import { getDetectionColor } from "../utils/detection-colors";
 
 type Detection = {
   label: string;
@@ -18,7 +19,6 @@ type Props = {
   imageWidth: number;
   imageHeight: number;
   detections?: Detection[];
-  accent?: string;
   selectedIndex?: number | null;
   showBoxes?: boolean;
   showFill?: boolean;
@@ -29,9 +29,64 @@ type Props = {
 const minZoom = 1;
 const maxZoom = 3;
 const zoomStep = 0.25;
+const labelHeight = 24;
+const labelGap = 6;
+const labelPaddingX = 8;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function formatScore(score: number) {
+  return `${Math.round(score * 100)}%`;
+}
+
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+
+  ctx.beginPath();
+  ctx.moveTo(x + safeRadius, y);
+  ctx.lineTo(x + width - safeRadius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  ctx.lineTo(x + width, y + height - safeRadius);
+  ctx.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - safeRadius,
+    y + height,
+  );
+  ctx.lineTo(x + safeRadius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  ctx.lineTo(x, y + safeRadius);
+  ctx.quadraticCurveTo(x, y, x + safeRadius, y);
+  ctx.closePath();
+}
+
+function truncateCanvasText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+) {
+  if (ctx.measureText(text).width <= maxWidth) {
+    return text;
+  }
+
+  let truncatedText = text;
+  while (truncatedText.length > 1) {
+    truncatedText = truncatedText.slice(0, -1);
+    if (ctx.measureText(`${truncatedText}...`).width <= maxWidth) {
+      return `${truncatedText}...`;
+    }
+  }
+
+  return text.slice(0, 1);
 }
 
 export default function ImageWithDetections({
@@ -39,7 +94,6 @@ export default function ImageWithDetections({
   imageWidth,
   imageHeight,
   detections = [],
-  accent = "#2563eb",
   selectedIndex = null,
   showBoxes = true,
   showFill = true,
@@ -87,6 +141,7 @@ export default function ImageWithDetections({
 
       const { x1, y1, x2, y2 } = det.box;
       const isSelected = selectedIndex === index;
+      const color = getDetectionColor(det.label);
 
       const x = x1 * scaleX;
       const y = y1 * scaleY;
@@ -95,39 +150,65 @@ export default function ImageWithDetections({
 
       if (showFill) {
         ctx.globalAlpha = isSelected ? 0.22 : 0.1;
-        ctx.fillStyle = accent;
+        ctx.fillStyle = color;
         ctx.fillRect(x, y, bw, bh);
         ctx.globalAlpha = 1;
       }
 
       if (showBoxes) {
-        ctx.strokeStyle = accent;
+        ctx.strokeStyle = color;
         ctx.lineWidth = isSelected ? 4 : 2;
         ctx.strokeRect(x, y, bw, bh);
+
+        const labelText = `${det.label} ${formatScore(det.score)}`;
+        ctx.font =
+          "800 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+
+        const maxLabelWidth = Math.max(64, Math.min(w - 8, bw + 120));
+        const text = truncateCanvasText(
+          ctx,
+          labelText,
+          maxLabelWidth - labelPaddingX * 2,
+        );
+        const labelWidth = Math.min(
+          maxLabelWidth,
+          ctx.measureText(text).width + labelPaddingX * 2,
+        );
+        const labelX = clamp(x, 4, w - labelWidth - 4);
+        const labelAboveY = y - labelHeight - labelGap;
+        const labelInsideY = y + labelGap;
+        const labelY =
+          labelAboveY >= 4
+            ? labelAboveY
+            : clamp(labelInsideY, 4, h - labelHeight - 4);
+
+        ctx.shadowColor = "rgba(15, 23, 42, 0.2)";
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
+        drawRoundedRect(ctx, labelX, labelY, labelWidth, labelHeight, 7);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        if (isSelected) {
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(
+          text,
+          labelX + labelPaddingX,
+          labelY + labelHeight / 2 + 0.5,
+        );
       }
-
-      const markerX = Math.max(15, Math.min(w - 15, x + 15));
-      const markerY = Math.max(15, Math.min(h - 15, y + 15));
-      ctx.beginPath();
-      ctx.arc(markerX, markerY, isSelected ? 15 : 13, 0, Math.PI * 2);
-      ctx.fillStyle = accent;
-      ctx.fill();
-
-      if (isSelected) {
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 3;
-        ctx.stroke();
-      }
-
-      ctx.font =
-        "700 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(String(index + 1), markerX, markerY + 0.5);
     });
   }, [
-    accent,
     detections,
     imageWidth,
     imageHeight,

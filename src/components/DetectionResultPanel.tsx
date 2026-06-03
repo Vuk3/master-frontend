@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useI18n } from "../i18n/use-i18n";
 import type { DetectResponse, Detection } from "../api/types";
 import ImageWithDetections from "./ImageWithDetection";
+import { getDetectionColor } from "../utils/detection-colors";
 
 type ServiceKey = "python" | "dotnet";
 type RunStatus = "idle" | "loading" | "success" | "error";
@@ -16,11 +17,6 @@ type Props = {
   durationMs: number | null;
   error: string | null;
   threshold: number;
-};
-
-const accents = {
-  python: "#0891b2",
-  dotnet: "#059669",
 };
 
 function formatDuration(durationMs: number | null) {
@@ -159,7 +155,6 @@ export default function DetectionResultPanel({
           {imageUrl ? (
             imageSize ? (
               <ImageWithDetections
-                accent={accents[service]}
                 detections={detections}
                 imageHeight={imageSize.height}
                 imageUrl={imageUrl}
@@ -214,6 +209,13 @@ export default function DetectionResultPanel({
                       setSelectedDetectionIndex((current) =>
                         current === index ? null : index,
                       )
+                    }
+                    style={
+                      {
+                        "--detection-color": getDetectionColor(
+                          detection.label,
+                        ),
+                      } as CSSProperties
                     }
                     type="button"
                   >

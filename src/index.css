@@ -1071,6 +1071,7 @@ pre,
 }
 
 .detection-item {
+  --detection-color: var(--blue);
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
@@ -1091,12 +1092,12 @@ pre,
 
 .detection-item:hover,
 .detection-item[data-selected="true"] {
-  border-color: rgba(37, 99, 235, 0.28);
+  border-color: var(--detection-color);
   background: var(--surface-tint);
 }
 
 .detection-item[data-selected="true"] {
-  box-shadow: inset 3px 0 0 var(--blue);
+  box-shadow: inset 3px 0 0 var(--detection-color);
 }
 
 .detection-index {
@@ -1105,18 +1106,10 @@ pre,
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  background: var(--blue);
+  background: var(--detection-color);
   color: #fff;
   font-size: 12px;
   font-weight: 850;
-}
-
-.result-card[data-service="python"] .detection-index {
-  background: var(--cyan);
-}
-
-.result-card[data-service="dotnet"] .detection-index {
-  background: var(--emerald);
 }
 
 .detection-label {
@@ -1146,11 +1139,7 @@ pre,
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--blue), var(--cyan));
-}
-
-.result-card[data-service="dotnet"] .detection-confidence span {
-  background: linear-gradient(90deg, var(--emerald), #16a34a);
+  background: var(--detection-color);
 }
 
 .empty-detections,
