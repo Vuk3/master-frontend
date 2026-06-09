@@ -9,8 +9,10 @@ export const ROUTES = {
   gatewayHealth: "/health",
 
   pythonHealth: "/python/health",
+  pythonModels: "/python/models",
   pythonPredict: "/python/predict",
 
   dotnetHealth: "/dotnet/health",
+  dotnetModels: "/dotnet/models",
   dotnetPredict: "/dotnet/predict",
 };

@@ -76,6 +76,13 @@
   "filters": {
     "minConfidence": "Min pouzdanost"
   },
+  "modelSelector": {
+    "pythonLabel": "Python model",
+    "dotnetLabel": ".NET model",
+    "loading": "Ucitavanje modela",
+    "empty": "Nema modela",
+    "hint": "Izaberi model za analizu"
+  },
   "fileInspector": {
     "title": "Izabrani fajl",
     "dimensions": "Dimenzije",

@@ -76,6 +76,13 @@
   "filters": {
     "minConfidence": "Min confidence"
   },
+  "modelSelector": {
+    "pythonLabel": "Python model",
+    "dotnetLabel": ".NET model",
+    "loading": "Loading models",
+    "empty": "No models found",
+    "hint": "Select the model used for analysis"
+  },
   "fileInspector": {
     "title": "Selected file",
     "dimensions": "Dimensions",

@@ -527,6 +527,80 @@ pre,
   align-self: stretch;
 }
 
+.model-select-grid {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.model-select-control {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-solid);
+}
+
+.model-select-control__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.model-select-control__heading > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 720;
+}
+
+.model-select-control__heading strong {
+  overflow: hidden;
+  max-width: 62%;
+  padding: 4px 8px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 820;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-select-control select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.model-select-control select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: var(--ring);
+}
+
+.model-select-control select:disabled {
+  opacity: 0.6;
+}
+
+.model-select-control small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .action-button,
 .service-button {
   display: inline-flex;
@@ -781,6 +855,15 @@ pre,
   color: var(--text);
   font-size: 15px;
   font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 720;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1321,6 +1404,10 @@ pre,
   }
 
   .control-panel__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .model-select-grid {
     grid-template-columns: 1fr;
   }
 

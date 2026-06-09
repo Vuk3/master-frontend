@@ -3,7 +3,11 @@ import { ApiError } from "../api/client";
 import { dotnetApi } from "../api/dotnet";
 import { gatewayApi } from "../api/gateway";
 import { pythonApi } from "../api/python";
-import type { DetectResponse, Detection } from "../api/types";
+import type {
+  DetectResponse,
+  Detection,
+  ModelOption,
+} from "../api/types";
 import DetectionResultPanel from "../components/DetectionResultPanel";
 import FilePicker from "../components/FilePicker";
 import LanguageSwitcher from "../components/LanguageSwitcher";
@@ -30,6 +34,13 @@ type HealthState = {
 type ImageInfo = {
   width: number;
   height: number;
+};
+
+type ModelSelectionState = {
+  options: ModelOption[];
+  selectedId: string;
+  isLoading: boolean;
+  error: string | null;
 };
 
 function createRunState() {
@@ -61,6 +72,22 @@ function createHealthStates() {
     gateway: createHealthState(),
     python: createHealthState(),
     dotnet: createHealthState(),
+  };
+}
+
+function createModelSelectionState() {
+  return {
+    options: [],
+    selectedId: "",
+    isLoading: true,
+    error: null,
+  };
+}
+
+function createModelSelections() {
+  return {
+    python: createModelSelectionState(),
+    dotnet: createModelSelectionState(),
   };
 }
 
@@ -105,8 +132,13 @@ function getBestDetection(detections: Detection[]) {
   if (!detections.length) return null;
 
   return detections.reduce((best, detection) =>
-    detection.score > best.score ? detection : best,
+    detection.score > best.score ? detection : best
   );
+}
+
+function formatAnnotationType(annotationType: string | null | undefined) {
+  if (!annotationType) return "-";
+  return annotationType.replace(/[-_]/g, " ");
 }
 
 export default function DetectPage() {
@@ -119,32 +151,47 @@ export default function DetectPage() {
   const [healthChecks, setHealthChecks] =
     useState<Record<HealthKey, HealthState>>(createHealthStates);
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.25);
+  const [modelSelections, setModelSelections] =
+    useState<Record<ServiceKey, ModelSelectionState>>(createModelSelections);
   const previewUrlRef = useRef<string | null>(null);
 
   const isDetecting = Object.values(runs).some(
-    (run) => run.status === "loading",
+    (run) => run.status === "loading"
   );
   const isCheckingHealth = Object.values(healthChecks).some(
-    (health) => health.status === "loading",
+    (health) => health.status === "loading"
   );
   const canDetect = useMemo(() => !!file && !isDetecting, [file, isDetecting]);
   const hasRunResults = Object.values(runs).some(
-    (run) => run.status === "success" || run.status === "error",
+    (run) => run.status === "success" || run.status === "error"
   );
   const canClearPredictions = Boolean(file) && hasRunResults && !isDetecting;
+  const selectedModels = useMemo(
+    () => ({
+      python:
+        modelSelections.python.options.find(
+          (model) => model.id === modelSelections.python.selectedId,
+        ) ?? null,
+      dotnet:
+        modelSelections.dotnet.options.find(
+          (model) => model.id === modelSelections.dotnet.selectedId,
+        ) ?? null,
+    }),
+    [modelSelections],
+  );
 
   const filteredDetections = useMemo(
     () => ({
       python:
         runs.python.data?.detections.filter(
-          (detection) => detection.score >= confidenceThreshold,
+          (detection) => detection.score >= confidenceThreshold
         ) ?? [],
       dotnet:
         runs.dotnet.data?.detections.filter(
-          (detection) => detection.score >= confidenceThreshold,
+          (detection) => detection.score >= confidenceThreshold
         ) ?? [],
     }),
-    [confidenceThreshold, runs.dotnet.data, runs.python.data],
+    [confidenceThreshold, runs.dotnet.data, runs.python.data]
   );
 
   const totalDetections =
@@ -161,7 +208,7 @@ export default function DetectPage() {
     if (completed.length < 2) return null;
 
     const sorted = [...completed].sort(
-      (a, b) => Number(a.durationMs) - Number(b.durationMs),
+      (a, b) => Number(a.durationMs) - Number(b.durationMs)
     );
     const fastest = sorted[0];
     const slower = sorted[1];
@@ -227,6 +274,58 @@ export default function DetectPage() {
     previewImage.src = url;
   }, [file]);
 
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadModels(service: ServiceKey) {
+      setModelSelections((current) => ({
+        ...current,
+        [service]: {
+          ...current[service],
+          isLoading: true,
+          error: null,
+        },
+      }));
+
+      try {
+        const data =
+          service === "python"
+            ? await pythonApi.models()
+            : await dotnetApi.models();
+        if (!isActive) return;
+
+        setModelSelections((current) => ({
+          ...current,
+          [service]: {
+            options: data.models,
+            selectedId: data.defaultModelId ?? data.models[0]?.id ?? "",
+            isLoading: false,
+            error: null,
+          },
+        }));
+      } catch (error) {
+        if (!isActive) return;
+
+        setModelSelections((current) => ({
+          ...current,
+          [service]: {
+            options: [],
+            selectedId: "",
+            isLoading: false,
+            error: getErrorMessage(error),
+          },
+        }));
+      }
+    }
+
+    loadModels("python");
+    loadModels("dotnet");
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   function getErrorMessage(e: unknown) {
     if (e instanceof ApiError) {
       return `${e.message}${e.bodyText ? `\n${e.bodyText}` : ""}`;
@@ -254,10 +353,17 @@ export default function DetectPage() {
     }));
 
     const startedAt = performance.now();
-    const api = service === "python" ? pythonApi : dotnetApi;
-
     try {
-      const data = await api.predict(file);
+      const data =
+        service === "python"
+          ? await pythonApi.predict(
+              file,
+              modelSelections.python.selectedId || undefined,
+            )
+          : await dotnetApi.predict(
+              file,
+              modelSelections.dotnet.selectedId || undefined,
+            );
       const durationMs = performance.now() - startedAt;
 
       setRuns((current) => ({
@@ -305,8 +411,8 @@ export default function DetectPage() {
       service === "gateway"
         ? gatewayApi.health
         : service === "python"
-          ? pythonApi.health
-          : dotnetApi.health;
+        ? pythonApi.health
+        : dotnetApi.health;
 
     try {
       const message = await request();
@@ -345,31 +451,104 @@ export default function DetectPage() {
     setRuns(createRunStates());
   }
 
+  function handleModelChange(service: ServiceKey, modelId: string) {
+    setModelSelections((current) => ({
+      ...current,
+      [service]: {
+        ...current[service],
+        selectedId: modelId,
+      },
+    }));
+    setRuns(createRunStates());
+  }
+
+  function renderModelSelector(service: ServiceKey) {
+    const modelSelection = modelSelections[service];
+    const selectedModel = selectedModels[service];
+    const options =
+      service === "python" ? pythonModelOptions : dotnetModelOptions;
+
+    return (
+      <label className="model-select-control" key={service}>
+        <span className="model-select-control__heading">
+          <span>
+            {service === "python"
+              ? t("modelSelector.pythonLabel")
+              : t("modelSelector.dotnetLabel")}
+          </span>
+          <strong>
+            {selectedModel
+              ? formatAnnotationType(selectedModel.annotationType)
+              : modelSelection.isLoading
+                ? t("modelSelector.loading")
+                : "-"}
+          </strong>
+        </span>
+        <select
+          disabled={modelSelection.isLoading || !options.length}
+          onChange={(e) => handleModelChange(service, e.target.value)}
+          value={modelSelection.selectedId}
+        >
+          {!options.length ? (
+            <option value="">
+              {modelSelection.isLoading
+                ? t("modelSelector.loading")
+                : t("modelSelector.empty")}
+            </option>
+          ) : null}
+
+          {options.map((model) => (
+            <option key={model.value} value={model.value}>
+              {model.label}
+            </option>
+          ))}
+        </select>
+        <small>
+          {modelSelection.error
+            ? modelSelection.error
+            : selectedModel?.family ?? t("modelSelector.hint")}
+        </small>
+      </label>
+    );
+  }
+
   const statusLabel = file ? t("dashboard.ready") : t("dashboard.waiting");
   const fastestLabel = comparison
     ? t(`services.${comparison.fastestService}`)
     : "-";
   const detectionCountLabel = `${filteredDetections.python.length} / ${filteredDetections.dotnet.length}`;
   const detectionDeltaLabel = formatSignedNumber(
-    comparisonSummary.detectionDelta,
+    comparisonSummary.detectionDelta
   );
-  const averageConfidenceLabel = `${formatPercent(comparisonSummary.pythonAverage)} / ${formatPercent(
-    comparisonSummary.dotnetAverage,
-  )}`;
+  const averageConfidenceLabel = `${formatPercent(
+    comparisonSummary.pythonAverage
+  )} / ${formatPercent(comparisonSummary.dotnetAverage)}`;
   const confidenceDeltaLabel = formatSignedPercent(
-    comparisonSummary.confidenceDelta,
+    comparisonSummary.confidenceDelta
   );
   const pythonBestLabel = comparisonSummary.pythonBest
-    ? `${comparisonSummary.pythonBest.label} ${formatPercent(comparisonSummary.pythonBest.score)}`
+    ? `${comparisonSummary.pythonBest.label} ${formatPercent(
+        comparisonSummary.pythonBest.score
+      )}`
     : "-";
   const dotnetBestLabel = comparisonSummary.dotnetBest
-    ? `${comparisonSummary.dotnetBest.label} ${formatPercent(comparisonSummary.dotnetBest.score)}`
+    ? `${comparisonSummary.dotnetBest.label} ${formatPercent(
+        comparisonSummary.dotnetBest.score
+      )}`
     : "-";
   const selectedImageDimensions = imageInfo
     ? `${imageInfo.width} x ${imageInfo.height}`
     : "-";
   const selectedImageType = file?.type || "-";
   const selectedImageSize = file ? formatFileSize(file.size) : "-";
+  const pythonModelOptions = modelSelections.python.options.map((model) => ({
+    value: model.id,
+    label: model.name,
+  }));
+  const dotnetModelOptions = modelSelections.dotnet.options.map((model) => ({
+    value: model.id,
+    label: model.name,
+  }));
 
   return (
     <main className="app-shell">
@@ -472,6 +651,11 @@ export default function DetectPage() {
             </div>
           </div>
 
+          <div className="model-select-grid">
+            {renderModelSelector("python")}
+            {renderModelSelector("dotnet")}
+          </div>
+
           <div className="action-row">
             <button
               className="action-button action-button--primary"
@@ -564,7 +748,10 @@ export default function DetectPage() {
         </div>
       </section>
 
-      <section className="results-grid" aria-label={t("dashboard.resultsPanel")}>
+      <section
+        className="results-grid"
+        aria-label={t("dashboard.resultsPanel")}
+      >
         <DetectionResultPanel
           detections={filteredDetections.python}
           durationMs={runs.python.durationMs}

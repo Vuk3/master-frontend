@@ -29,6 +29,11 @@ function formatScore(score: number) {
   return `${Math.round(score * 100)}%`;
 }
 
+function formatAnnotationType(annotationType: string | null | undefined) {
+  if (!annotationType) return null;
+  return annotationType.replace(/[-_]/g, " ");
+}
+
 export default function DetectionResultPanel({
   service,
   title,
@@ -113,6 +118,9 @@ export default function DetectionResultPanel({
         <div className="metric">
           <span>{t("metrics.model")}</span>
           <strong>{result?.model ?? "-"}</strong>
+          {result?.annotationType ? (
+            <small>{formatAnnotationType(result.annotationType)}</small>
+          ) : null}
         </div>
         <div className="metric">
           <span>{t("metrics.inputSize")}</span>
