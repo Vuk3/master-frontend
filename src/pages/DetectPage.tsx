@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ApiError } from "../api/client";
 import { dotnetApi } from "../api/dotnet";
 import { gatewayApi } from "../api/gateway";
@@ -29,11 +29,6 @@ type HealthState = {
   status: HealthStatus;
   latencyMs: number | null;
   message: string | null;
-};
-
-type ImageInfo = {
-  width: number;
-  height: number;
 };
 
 type ModelSelectionState = {
@@ -114,14 +109,6 @@ function formatSignedPercent(value: number | null) {
   return rounded > 0 ? `+${rounded}%` : `${rounded}%`;
 }
 
-function formatFileSize(size: number) {
-  if (size < 1024 * 1024) {
-    return `${Math.max(1, Math.round(size / 1024))} KB`;
-  }
-
-  return `${(size / 1024 / 1024).toFixed(1)} MB`;
-}
-
 function getAverageConfidence(detections: Detection[]) {
   if (!detections.length) return null;
   const total = detections.reduce((sum, detection) => sum + detection.score, 0);
@@ -145,7 +132,6 @@ export default function DetectPage() {
   const { t } = useI18n();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [imageInfo, setImageInfo] = useState<ImageInfo | null>(null);
   const [runs, setRuns] =
     useState<Record<ServiceKey, RunState>>(createRunStates);
   const [healthChecks, setHealthChecks] =
@@ -240,7 +226,6 @@ export default function DetectPage() {
 
   useEffect(() => {
     setRuns(createRunStates());
-    setImageInfo(null);
 
     if (!file) {
       if (previewUrlRef.current) {
@@ -258,20 +243,6 @@ export default function DetectPage() {
     const url = URL.createObjectURL(file);
     previewUrlRef.current = url;
     setPreviewUrl(url);
-
-    const previewImage = new Image();
-    previewImage.onload = () => {
-      if (previewUrlRef.current !== url) return;
-      setImageInfo({
-        width: previewImage.naturalWidth,
-        height: previewImage.naturalHeight,
-      });
-    };
-    previewImage.onerror = () => {
-      if (previewUrlRef.current !== url) return;
-      setImageInfo(null);
-    };
-    previewImage.src = url;
   }, [file]);
 
   useEffect(() => {
@@ -536,11 +507,6 @@ export default function DetectPage() {
         comparisonSummary.dotnetBest.score
       )}`
     : "-";
-  const selectedImageDimensions = imageInfo
-    ? `${imageInfo.width} x ${imageInfo.height}`
-    : "-";
-  const selectedImageType = file?.type || "-";
-  const selectedImageSize = file ? formatFileSize(file.size) : "-";
   const pythonModelOptions = modelSelections.python.options.map((model) => ({
     value: model.id,
     label: model.name,
@@ -615,32 +581,26 @@ export default function DetectPage() {
             </span>
           </div>
           <FilePicker file={file} onPick={setFile} />
-          <div className="file-inspector">
-            <div className="file-inspector__frame" data-empty={!previewUrl}>
-              {previewUrl ? (
-                <img src={previewUrl} alt={t("imagePreview.alt")} />
-              ) : (
-                <span>IMG</span>
-              )}
-            </div>
-            <div className="file-inspector__meta">
-              <span>{t("fileInspector.title")}</span>
-              <div className="file-inspector__stats">
-                <div>
-                  <span>{t("fileInspector.dimensions")}</span>
-                  <strong>{selectedImageDimensions}</strong>
-                </div>
-                <div>
-                  <span>{t("fileInspector.type")}</span>
-                  <strong>{selectedImageType}</strong>
-                </div>
-                <div>
-                  <span>{t("fileInspector.size")}</span>
-                  <strong>{selectedImageSize}</strong>
-                </div>
-              </div>
-            </div>
-          </div>
+
+          <label className="threshold-control">
+            <span>
+              {t("filters.minConfidence")}
+              <strong>{formatPercent(confidenceThreshold)}</strong>
+            </span>
+            <input
+              max="1"
+              min="0"
+              onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
+              step="0.01"
+              style={
+                {
+                  "--range-fill": `${Math.round(confidenceThreshold * 100)}%`,
+                } as CSSProperties
+              }
+              type="range"
+              value={confidenceThreshold}
+            />
+          </label>
         </div>
 
         <div className="control-panel__actions">
@@ -692,23 +652,10 @@ export default function DetectPage() {
                 : t("buttons.detectDotnet")}
             </button>
           </div>
+        </div>
 
-          <label className="threshold-control">
-            <span>
-              {t("filters.minConfidence")}
-              <strong>{formatPercent(confidenceThreshold)}</strong>
-            </span>
-            <input
-              max="1"
-              min="0"
-              onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
-              step="0.01"
-              type="range"
-              value={confidenceThreshold}
-            />
-          </label>
-
-          <div className="comparison-strip" aria-label={t("metrics.title")}>
+        <div className="control-panel__metrics" aria-label={t("metrics.title")}>
+          <div className="comparison-strip">
             <div className="comparison-stat comparison-stat--total">
               <span>{t("metrics.totalDetections")}</span>
               <strong>{totalDetections}</strong>
