@@ -103,8 +103,8 @@ export default function ImageWithDetections({
   const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const frameRef = useRef<number | null>(null);
   const dragRef = useRef({ active: false, x: 0, y: 0, hasDragged: false });
-  const [isLoaded, setIsLoaded] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
@@ -117,7 +117,7 @@ export default function ImageWithDetections({
     const canvas = canvasRef.current;
     const img = imgRef.current;
     if (!canvas || !img) return;
-    if (!isLoaded) return;
+    if (!img.complete || !img.naturalWidth || !img.naturalHeight) return;
 
     const w = img.clientWidth;
     const h = img.clientHeight;
@@ -208,19 +208,20 @@ export default function ImageWithDetections({
         );
       }
     });
-  }, [
-    detections,
-    imageWidth,
-    imageHeight,
-    isLoaded,
-    onlySelected,
-    selectedIndex,
-    showBoxes,
-    showFill,
-  ]);
+  }, [detections, imageWidth, imageHeight, onlySelected, selectedIndex, showBoxes, showFill]);
+
+  const scheduleDraw = useCallback(() => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+    }
+
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null;
+      draw();
+    });
+  }, [draw]);
 
   useEffect(() => {
-    setIsLoaded(false);
     resetView();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -230,18 +231,26 @@ export default function ImageWithDetections({
   }, [imageUrl, resetView]);
 
   useEffect(() => {
-    draw();
-  }, [draw]);
+    scheduleDraw();
+  }, [scheduleDraw]);
 
   useEffect(() => {
     const img = imgRef.current;
     if (!img) return;
 
-    const ro = new ResizeObserver(() => draw());
+    const ro = new ResizeObserver(() => scheduleDraw());
     ro.observe(img);
 
     return () => ro.disconnect();
-  }, [draw]);
+  }, [scheduleDraw]);
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
 
   function changeZoom(nextZoom: number) {
     const clampedZoom = clamp(nextZoom, minZoom, maxZoom);
@@ -360,10 +369,7 @@ export default function ImageWithDetections({
             alt={t("imagePreview.alt")}
             className="image-canvas__image"
             draggable={false}
-            onLoad={() => {
-              setIsLoaded(true);
-              requestAnimationFrame(draw);
-            }}
+            onLoad={scheduleDraw}
           />
           <canvas ref={canvasRef} className="image-canvas__overlay" />
         </div>
