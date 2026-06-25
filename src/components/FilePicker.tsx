@@ -71,7 +71,7 @@ export default function FilePicker({ onPick, file }: Props) {
           </svg>
         </span>
         <span className="file-picker__text">
-          <strong>{file ? file.name : t("filePicker.button")}</strong>
+          <strong title={file?.name}>{file ? file.name : t("filePicker.button")}</strong>
           <span>
             {file ? formatFileSize(file.size) : t("filePicker.empty")}
           </span>

@@ -29,9 +29,10 @@ type Props = {
 const minZoom = 1;
 const maxZoom = 3;
 const zoomStep = 0.25;
-const labelHeight = 24;
-const labelGap = 6;
-const labelPaddingX = 8;
+const labelHeight = 18;
+const labelGap = 2;
+const labelPaddingX = 6;
+const labelPaddingY = 3;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -159,54 +160,66 @@ export default function ImageWithDetections({
         ctx.strokeStyle = color;
         ctx.lineWidth = isSelected ? 4 : 2;
         ctx.strokeRect(x, y, bw, bh);
-
-        const labelText = `${det.label} ${formatScore(det.score)}`;
-        ctx.font =
-          "800 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-
-        const maxLabelWidth = Math.max(64, Math.min(w - 8, bw + 120));
-        const text = truncateCanvasText(
-          ctx,
-          labelText,
-          maxLabelWidth - labelPaddingX * 2,
-        );
-        const labelWidth = Math.min(
-          maxLabelWidth,
-          ctx.measureText(text).width + labelPaddingX * 2,
-        );
-        const labelX = clamp(x, 4, w - labelWidth - 4);
-        const labelAboveY = y - labelHeight - labelGap;
-        const labelInsideY = y + labelGap;
-        const labelY =
-          labelAboveY >= 4
-            ? labelAboveY
-            : clamp(labelInsideY, 4, h - labelHeight - 4);
-
-        ctx.shadowColor = "rgba(15, 23, 42, 0.2)";
-        ctx.shadowBlur = 6;
-        ctx.shadowOffsetY = 2;
-        drawRoundedRect(ctx, labelX, labelY, labelWidth, labelHeight, 7);
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.shadowColor = "transparent";
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-
-        if (isSelected) {
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(
-          text,
-          labelX + labelPaddingX,
-          labelY + labelHeight / 2 + 0.5,
-        );
       }
+    });
+
+    if (!showBoxes) {
+      return;
+    }
+
+    detections.forEach((det, index) => {
+      if (onlySelected && selectedIndex !== null && selectedIndex !== index) {
+        return;
+      }
+
+      const { x1, y1, x2 } = det.box;
+      const isSelected = selectedIndex === index;
+      const color = getDetectionColor(det.label);
+
+      const x = x1 * scaleX;
+      const y = y1 * scaleY;
+      const bw = (x2 - x1) * scaleX;
+      const labelText = `${det.label} ${formatScore(det.score)}`;
+      ctx.font =
+        "800 10.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+
+      const maxLabelWidth = Math.max(54, Math.min(w - 8, bw + 56));
+      const text = truncateCanvasText(
+        ctx,
+        labelText,
+        maxLabelWidth - labelPaddingX * 2,
+      );
+      const labelWidth = Math.min(
+        maxLabelWidth,
+        ctx.measureText(text).width + labelPaddingX * 2,
+      );
+      const labelX = clamp(x, 4, w - labelWidth - 4);
+      const labelY = clamp(y - labelHeight - labelGap, 4, h - labelHeight - 4);
+
+      ctx.shadowColor = "rgba(15, 23, 42, 0.18)";
+      ctx.shadowBlur = 5;
+      ctx.shadowOffsetY = 1;
+      drawRoundedRect(ctx, labelX, labelY, labelWidth, labelHeight, 5);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      if (isSelected) {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(
+        text,
+        labelX + labelPaddingX,
+        labelY + labelPaddingY + (labelHeight - labelPaddingY * 2) / 2 + 0.5,
+      );
     });
   }, [detections, imageWidth, imageHeight, onlySelected, selectedIndex, showBoxes, showFill]);
 
