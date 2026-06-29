@@ -14,6 +14,13 @@ type Detection = {
   box: { x1: number; y1: number; x2: number; y2: number };
 };
 
+type LabelRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 type Props = {
   imageUrl: string;
   imageWidth: number;
@@ -33,6 +40,7 @@ const labelHeight = 18;
 const labelGap = 2;
 const labelPaddingX = 6;
 const labelPaddingY = 3;
+const labelCollisionGap = 3;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -88,6 +96,62 @@ function truncateCanvasText(
   }
 
   return text.slice(0, 1);
+}
+
+function overlapsLabel(a: LabelRect, b: LabelRect) {
+  return !(
+    a.x + a.width + labelCollisionGap <= b.x ||
+    b.x + b.width + labelCollisionGap <= a.x ||
+    a.y + a.height + labelCollisionGap <= b.y ||
+    b.y + b.height + labelCollisionGap <= a.y
+  );
+}
+
+function findLabelRect(
+  boxX: number,
+  boxY: number,
+  labelWidth: number,
+  canvasWidth: number,
+  canvasHeight: number,
+  placedLabels: LabelRect[],
+) {
+  const minX = 4;
+  const minY = 4;
+  const maxX = Math.max(minX, canvasWidth - labelWidth - 4);
+  const maxY = Math.max(minY, canvasHeight - labelHeight - 4);
+  const baseX = clamp(boxX, minX, maxX);
+  const rowStep = labelHeight + labelGap + labelCollisionGap;
+  const xOffsets = [0, 8, -8, 18, -18, 32, -32];
+  const candidates: LabelRect[] = [];
+
+  for (let row = 0; row < 10; row++) {
+    const aboveY = boxY - labelHeight - labelGap - row * rowStep;
+    const belowY = boxY + labelGap + row * rowStep;
+
+    [aboveY, belowY].forEach((candidateY) => {
+      if (candidateY < minY || candidateY > maxY) return;
+
+      xOffsets.forEach((offset) => {
+        candidates.push({
+          x: clamp(baseX + offset, minX, maxX),
+          y: candidateY,
+          width: labelWidth,
+          height: labelHeight,
+        });
+      });
+    });
+  }
+
+  return (
+    candidates.find((candidate) =>
+      placedLabels.every((placed) => !overlapsLabel(candidate, placed)),
+    ) ?? {
+      x: baseX,
+      y: clamp(boxY - labelHeight - labelGap, minY, maxY),
+      width: labelWidth,
+      height: labelHeight,
+    }
+  );
 }
 
 export default function ImageWithDetections({
@@ -167,6 +231,8 @@ export default function ImageWithDetections({
       return;
     }
 
+    const placedLabels: LabelRect[] = [];
+
     detections.forEach((det, index) => {
       if (onlySelected && selectedIndex !== null && selectedIndex !== index) {
         return;
@@ -193,13 +259,13 @@ export default function ImageWithDetections({
         maxLabelWidth,
         ctx.measureText(text).width + labelPaddingX * 2,
       );
-      const labelX = clamp(x, 4, w - labelWidth - 4);
-      const labelY = clamp(y - labelHeight - labelGap, 4, h - labelHeight - 4);
+      const labelRect = findLabelRect(x, y, labelWidth, w, h, placedLabels);
+      placedLabels.push(labelRect);
 
       ctx.shadowColor = "rgba(15, 23, 42, 0.18)";
       ctx.shadowBlur = 5;
       ctx.shadowOffsetY = 1;
-      drawRoundedRect(ctx, labelX, labelY, labelWidth, labelHeight, 5);
+      drawRoundedRect(ctx, labelRect.x, labelRect.y, labelRect.width, labelRect.height, 5);
       ctx.fillStyle = color;
       ctx.fill();
       ctx.shadowColor = "transparent";
@@ -217,8 +283,8 @@ export default function ImageWithDetections({
       ctx.fillStyle = "#ffffff";
       ctx.fillText(
         text,
-        labelX + labelPaddingX,
-        labelY + labelPaddingY + (labelHeight - labelPaddingY * 2) / 2 + 0.5,
+        labelRect.x + labelPaddingX,
+        labelRect.y + labelPaddingY + (labelHeight - labelPaddingY * 2) / 2 + 0.5,
       );
     });
   }, [detections, imageWidth, imageHeight, onlySelected, selectedIndex, showBoxes, showFill]);
