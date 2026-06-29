@@ -214,7 +214,7 @@ export default function ImageWithDetections({
       const bh = (y2 - y1) * scaleY;
 
       if (showFill) {
-        ctx.globalAlpha = isSelected ? 0.22 : 0.1;
+        ctx.globalAlpha = isSelected ? 0.32 : 0.18;
         ctx.fillStyle = color;
         ctx.fillRect(x, y, bw, bh);
         ctx.globalAlpha = 1;
