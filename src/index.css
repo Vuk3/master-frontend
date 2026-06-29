@@ -698,16 +698,13 @@ pre,
 }
 
 .comparison-stat--best strong {
-  display: -webkit-box;
+  display: block;
   overflow: hidden;
-  font-size: 13px;
-  line-height: 1.2;
+  font-size: 20px;
+  line-height: 1.15;
   white-space: normal;
   overflow-wrap: anywhere;
   text-overflow: clip;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
 }
 
 .summary-card strong {
