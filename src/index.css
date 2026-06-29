@@ -504,6 +504,18 @@ pre,
   white-space: nowrap;
 }
 
+.model-select-control__heading strong[data-annotation="fully-annotated"] {
+  border-color: rgba(5, 150, 105, 0.28);
+  background: rgba(5, 150, 105, 0.09);
+  color: var(--emerald);
+}
+
+.model-select-control__heading strong[data-annotation="half-annotated"] {
+  border-color: rgba(37, 99, 235, 0.26);
+  background: rgba(37, 99, 235, 0.09);
+  color: var(--blue);
+}
+
 .model-select-control select {
   width: 100%;
   min-height: 42px;

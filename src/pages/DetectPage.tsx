@@ -125,7 +125,23 @@ function getBestDetection(detections: Detection[]) {
 
 function formatAnnotationType(annotationType: string | null | undefined) {
   if (!annotationType) return "-";
-  return annotationType.replace(/[-_]/g, " ");
+  return annotationType
+    .replace(/[-_]/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function formatModelOptionLabel(model: ModelOption) {
+  const annotationType = formatAnnotationType(model.annotationType);
+  if (annotationType === "-") {
+    return model.name;
+  }
+
+  return model.name.toLowerCase().includes(annotationType.toLowerCase())
+    ? model.name
+    : `${model.name} - ${annotationType}`;
 }
 
 export default function DetectPage() {
@@ -447,7 +463,7 @@ export default function DetectPage() {
               ? t("modelSelector.pythonLabel")
               : t("modelSelector.dotnetLabel")}
           </span>
-          <strong>
+          <strong data-annotation={selectedModel?.annotationType ?? "none"}>
             {selectedModel
               ? formatAnnotationType(selectedModel.annotationType)
               : modelSelection.isLoading
@@ -509,11 +525,11 @@ export default function DetectPage() {
     : "-";
   const pythonModelOptions = modelSelections.python.options.map((model) => ({
     value: model.id,
-    label: model.name,
+    label: formatModelOptionLabel(model),
   }));
   const dotnetModelOptions = modelSelections.dotnet.options.map((model) => ({
     value: model.id,
-    label: model.name,
+    label: formatModelOptionLabel(model),
   }));
 
   return (
