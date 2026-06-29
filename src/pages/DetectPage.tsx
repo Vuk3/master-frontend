@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { ApiError } from "../api/client";
 import { dotnetApi } from "../api/dotnet";
 import { gatewayApi } from "../api/gateway";
 import { pythonApi } from "../api/python";
-import type {
-  DetectResponse,
-  Detection,
-  ModelOption,
-} from "../api/types";
+import type { DetectResponse, Detection, ModelOption } from "../api/types";
 import DetectionResultPanel from "../components/DetectionResultPanel";
 import FilePicker from "../components/FilePicker";
 import LanguageSwitcher from "../components/LanguageSwitcher";
@@ -153,8 +155,9 @@ export default function DetectPage() {
   const [healthChecks, setHealthChecks] =
     useState<Record<HealthKey, HealthState>>(createHealthStates);
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.25);
-  const [modelSelections, setModelSelections] =
-    useState<Record<ServiceKey, ModelSelectionState>>(createModelSelections);
+  const [modelSelections, setModelSelections] = useState<
+    Record<ServiceKey, ModelSelectionState>
+  >(createModelSelections);
   const previewUrlRef = useRef<string | null>(null);
 
   const isDetecting = Object.values(runs).some(
@@ -172,14 +175,14 @@ export default function DetectPage() {
     () => ({
       python:
         modelSelections.python.options.find(
-          (model) => model.id === modelSelections.python.selectedId,
+          (model) => model.id === modelSelections.python.selectedId
         ) ?? null,
       dotnet:
         modelSelections.dotnet.options.find(
-          (model) => model.id === modelSelections.dotnet.selectedId,
+          (model) => model.id === modelSelections.dotnet.selectedId
         ) ?? null,
     }),
-    [modelSelections],
+    [modelSelections]
   );
 
   const filteredDetections = useMemo(
@@ -345,11 +348,11 @@ export default function DetectPage() {
         service === "python"
           ? await pythonApi.predict(
               file,
-              modelSelections.python.selectedId || undefined,
+              modelSelections.python.selectedId || undefined
             )
           : await dotnetApi.predict(
               file,
-              modelSelections.dotnet.selectedId || undefined,
+              modelSelections.dotnet.selectedId || undefined
             );
       const durationMs = performance.now() - startedAt;
 
@@ -467,8 +470,8 @@ export default function DetectPage() {
             {selectedModel
               ? formatAnnotationType(selectedModel.annotationType)
               : modelSelection.isLoading
-                ? t("modelSelector.loading")
-                : "-"}
+              ? t("modelSelector.loading")
+              : "-"}
           </strong>
         </span>
         <select
@@ -686,7 +689,7 @@ export default function DetectPage() {
             </div>
             <div className="comparison-stat comparison-stat--best">
               <span>{t("comparison.bestDetection")}</span>
-              <strong>{`${pythonBestLabel} | ${dotnetBestLabel}`}</strong>
+              <strong>{`${pythonBestLabel} / ${dotnetBestLabel}`}</strong>
             </div>
           </div>
 
