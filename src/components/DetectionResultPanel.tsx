@@ -34,6 +34,16 @@ function formatAnnotationType(annotationType: string | null | undefined) {
   return annotationType.replace(/[-_]/g, " ");
 }
 
+function formatModelName(service: ServiceKey, model: string | null | undefined) {
+  if (!model) return "-";
+
+  if (service === "dotnet" && model.includes("ML.NET")) {
+    return "ML.NET";
+  }
+
+  return model;
+}
+
 export default function DetectionResultPanel({
   service,
   title,
@@ -117,7 +127,7 @@ export default function DetectionResultPanel({
         </div>
         <div className="metric">
           <span>{t("metrics.model")}</span>
-          <strong>{result?.model ?? "-"}</strong>
+          <strong>{formatModelName(service, result?.model)}</strong>
           {result?.annotationType ? (
             <small>{formatAnnotationType(result.annotationType)}</small>
           ) : null}
