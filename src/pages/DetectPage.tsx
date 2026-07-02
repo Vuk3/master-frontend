@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -155,7 +156,7 @@ export default function DetectPage() {
     useState<Record<ServiceKey, RunState>>(createRunStates);
   const [healthChecks, setHealthChecks] =
     useState<Record<HealthKey, HealthState>>(createHealthStates);
-  const [confidenceThreshold, setConfidenceThreshold] = useState(0.25);
+  const [confidenceThreshold, setConfidenceThreshold] = useState(0.5);
   const [modelSelections, setModelSelections] = useState<
     Record<ServiceKey, ModelSelectionState>
   >(createModelSelections);
@@ -184,6 +185,21 @@ export default function DetectPage() {
         ) ?? null,
     }),
     [modelSelections]
+  );
+
+  const getErrorMessage = useCallback(
+    (e: unknown) => {
+      if (e instanceof ApiError) {
+        return `${e.message}${e.bodyText ? `\n${e.bodyText}` : ""}`;
+      }
+
+      if (e instanceof Error) {
+        return e.message;
+      }
+
+      return t("errors.unknown");
+    },
+    [t]
   );
 
   const filteredDetections = useMemo(
@@ -315,19 +331,7 @@ export default function DetectPage() {
     return () => {
       isActive = false;
     };
-  }, []);
-
-  function getErrorMessage(e: unknown) {
-    if (e instanceof ApiError) {
-      return `${e.message}${e.bodyText ? `\n${e.bodyText}` : ""}`;
-    }
-
-    if (e instanceof Error) {
-      return e.message;
-    }
-
-    return t("errors.unknown");
-  }
+  }, [getErrorMessage]);
 
   async function runDetection(service: ServiceKey) {
     if (!file) return;
