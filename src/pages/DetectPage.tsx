@@ -13,6 +13,7 @@ import type { DetectResponse, Detection, ModelOption } from "../api/types";
 import DetectionResultPanel from "../components/DetectionResultPanel";
 import FilePicker from "../components/FilePicker";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import ThemeToggle from "../components/ThemeToggle";
 import { useI18n } from "../i18n/use-i18n";
 
 type ServiceKey = "python" | "dotnet";
@@ -561,7 +562,10 @@ export default function DetectPage() {
           </div>
         </div>
 
-        <LanguageSwitcher />
+        <div className="app-header__tools">
+          <ThemeToggle />
+          <LanguageSwitcher />
+        </div>
       </header>
 
       <section className="control-panel">

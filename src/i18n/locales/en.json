@@ -4,6 +4,10 @@
     "english": "English",
     "serbian": "Serbian"
   },
+  "theme": {
+    "switchToDark": "Switch to dark theme",
+    "switchToLight": "Switch to light theme"
+  },
   "dashboard": {
     "title": "Object Detection",
     "subtitle": "Gateway comparison",

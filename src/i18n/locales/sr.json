@@ -4,6 +4,10 @@
     "english": "Engleski",
     "serbian": "Srpski"
   },
+  "theme": {
+    "switchToDark": "Prebaci na tamnu temu",
+    "switchToLight": "Prebaci na svetlu temu"
+  },
   "dashboard": {
     "title": "Detekcija objekata",
     "subtitle": "Gateway poređenje",
